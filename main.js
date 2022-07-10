@@ -17,14 +17,16 @@ let AM_width = 20;
 let arr = []
 
 let ticks = 0;
-const speed = 5;
+const speed = 15;
 
 const arrSize = 50;
 const ACTIONS = { /* An object that contains the actions that the algorithm does. */
   SORT: "SORT",
   COMPARE: "COMPARE",
   CONTINUE:"CONTINUE",
+  INSERT:"INSERT",
   SWAP: "SWAP",
+  SHIFT_RIGHT: "SHIFT_RIGHT",
 };
 
 let randomArr;
@@ -179,6 +181,16 @@ const actionsMap = {
   [ACTIONS.CONTINUE]: (action, members) => {
     const i = action.data;
     members[i].setColor("pink");
+  },
+  [ACTIONS.INSERT]: (action, members) => {
+    const [i , j] = action.data;
+    members[i].setValue(j * canvas.height/100 * -1, "black");
+    playSound('sawtooth', members[i].getValue());
+  },
+  [ACTIONS.SHIFT_RIGHT]: (action, members) => {
+    const i = action.data;
+    members[i+1].setValue(members[i].getValue(), "blue");
+    playSound('sine', members[i+1].getValue());
   },
 };
 
