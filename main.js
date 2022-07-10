@@ -239,6 +239,8 @@ const start = () => {
 
   drawAll();
 
+  var startTime = performance.now()
+
   /* Calling the bubbleSort function, and passing in the randomArr array and a callback function. */
   bubbleSort(randomArr ,(action) => {
     ticks++;
@@ -249,4 +251,7 @@ const start = () => {
       arrayMembers.forEach((m) => m.resetColor());
     }, ticks * speed);
   });
+  var endTime = performance.now()
+
+  console.log(`Call to doSomething took ${endTime - startTime} milliseconds`)
 }
