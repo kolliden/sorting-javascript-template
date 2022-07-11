@@ -3,6 +3,7 @@
 let canvas = document.getElementById('cv');
 let ctx = canvas.getContext('2d');
 let startButton = document.getElementById('bsstart');
+let iframe = document.getElementById("iframe");
 
 canvas.width = 0;
 canvas.height = 0;
@@ -13,13 +14,13 @@ ctx.fillStyle = '#C0C0C0';
 let condition = true;
 let allInOrder = true;
 
-let AM_width = 20;
+let AM_width = 1;
 let arr = []
 
 let ticks = 0;
-const speed = 15;
+let speed = 15;
 
-const arrSize = 50;
+const arrSize = 900;
 const ACTIONS = { /* An object that contains the actions that the algorithm does. */
   SORT: "SORT",
   COMPARE: "COMPARE",
@@ -95,6 +96,7 @@ function initCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
   clear();
+  drawAll(arr);
 }
 
 /**
@@ -171,11 +173,15 @@ const actionsMap = {
     let tmp = members[i].getValue();
     members[i].setValue(members[j].getValue(), "red");
     members[j].setValue(tmp, "yellow");
+    playSound('sine', members[i].getValue());
+    playSound('sine', members[j].getValue());
   },
   [ACTIONS.COMPARE]: (action, members) => {
     const [i, j] = action.data;
     members[i].setColor("blue");
-    members[j].setColor("blue");
+    if(j){
+      members[j].setColor("blue");
+    }
     playSound('sine', members[i].getValue());
   },
   [ACTIONS.CONTINUE]: (action, members) => {
@@ -194,9 +200,19 @@ const actionsMap = {
   },
 };
 
-const drawAll = () => arrayMembers.forEach((m) => m.draw());
+const drawAll = () => {if(arrayMembers){arrayMembers.forEach((m) => m.draw());}}
 
-const check = (array, onAction) => {
+const onAction = async (action) => {
+  ticks++;
+  setTimeout(() => {
+    actionsMap[action.type](action, arrayMembers);
+    clear();
+    drawAll(arrayMembers);
+    arrayMembers.forEach((m) => m.resetColor());
+  }, ticks * speed);
+}
+
+const check = async (array) => {
   for (let i = 0; i < array.length; i++) {
     if(array[i] < array[i+1]){
       onAction({ type: ACTIONS.SORT, data: i });
@@ -208,50 +224,35 @@ const check = (array, onAction) => {
   return true;
 }
 
-/**
- * "While the array is not sorted, compare each element to the next element, and if the first element
- * is greater than the second element, swap them, and if not, continue to the next element."
- * 
- * The function takes two parameters: an array and a function. The array is the array to be sorted, and
- * the function is a callback function that is called every time the algorithm does something. The
- * callback function takes an object as a parameter, and the object has two properties: type and data.
- * The type property is a string that tells the callback function what the algorithm did, and the data
- * property is an array that contains the data that the callback function needs to do its job.
- * 
- * The callback function is called every time the algorithm does something. The algorithm does three
- * things: it compares two elements, it swaps two elements, and it continues to the next element. The
- * callback function is called with an object that has a type property of
- * @param array - The array to be sorted
- * @param onAction - a function that takes an object with two properties: type and data.
- */
-function bubbleSort(array, onAction) {
-  //Sorting things go here
+async function swap(arr, leftIndex, rightIndex){
+    var temp = arr[leftIndex];
+    arr[leftIndex] = arr[rightIndex];
+    arr[rightIndex] = temp;
 }
+
 
 const start = () => {
   initCanvas();
   startButton.remove();
+  iframe.remove();
 
-  randomArr = initRandomArr(arr);
-  arrayMembers = randomArr.map((v, i) => {
-    return new ArrayMember((AM_width * i + i)+(canvas.width/4), canvas.height/2+arrSize*5, AM_width, v * canvas.height/100 * -1);
+  arr = initRandomArr(arr);
+  arrayMembers = arr.map((v, i) => {
+    return new ArrayMember((AM_width * i + i), canvas.height, AM_width, v * -1 * canvas.height/arrSize);
   });
 
   drawAll();
 
   var startTime = performance.now()
 
-  /* Calling the bubbleSort function, and passing in the randomArr array and a callback function. */
-  bubbleSort(randomArr ,(action) => {
-    ticks++;
-    setTimeout(() => {
-      actionsMap[action.type](action, arrayMembers);
-      clear();
-      drawAll(arrayMembers);
-      arrayMembers.forEach((m) => m.resetColor());
-    }, ticks * speed);
-  });
+ // first call to quick sort
+  var sortedArray = quickSort(arr, 0, arr.length - 1);
+
+  speed = 5;
+  check(sortedArray);
+  console.log(sortedArray); //prints [2,3,5,6,7,9]
+
   var endTime = performance.now()
 
-  console.log(`Call to doSomething took ${endTime - startTime} milliseconds`)
+  console.log(`Took ${endTime - startTime} milliseconds`)
 }
